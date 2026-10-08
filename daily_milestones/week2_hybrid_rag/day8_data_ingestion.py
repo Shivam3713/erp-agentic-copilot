@@ -5,23 +5,28 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 def create_mock_runbook():
     """Generates a mock enterprise text file for ingestion."""
-    runbook_content = """
-    # Capgemini COREai - Infrastructure Runbook
-    
-    ## Section 1: MongoDB Atlas Outages
-    If a MongoDB Atlas cluster (like prod-db-01) experiences an HTTP 504 Gateway Timeout, 
-    it indicates connection pool exhaustion. 
-    Resolution: Navigate to the Atlas UI, select the cluster, and increase the max pool size to 10,000.
-    
-    ## Section 2: API Gateway Rate Limiting
-    If an unauthorized access alert is triggered on endpoint /v2/reporting, the SOC must 
-    immediately quarantine the endpoint using the Cloudflare WAF panel.
-    Resolution: Revoke all active bearer tokens issued in the last 24 hours and page the on-call security engineer.
-    
-    ## Section 3: Billing Gateway Failures
-    When the Stripe API returns a 402 Payment Required error, the customer's enterprise tier 
-    will automatically downgrade to free after a 3-day grace period.
-    """
+    runbook_content = (
+        "# Capgemini COREai - Infrastructure Runbook\n\n"
+        "## Section 1: MongoDB Atlas Outages\n"
+        "If a MongoDB Atlas cluster (like prod-db-01) experiences an HTTP 504 Gateway Timeout, "
+        "it indicates connection pool exhaustion. "
+        "Resolution: Navigate to the Atlas UI, select the cluster, and increase the max pool size to 10,000.\n\n"
+        "## Section 2: API Gateway Rate Limiting\n"
+        "If an unauthorized access alert is triggered on endpoint /v2/reporting, the SOC must "
+        "immediately quarantine the endpoint using the Cloudflare WAF panel. "
+        "Resolution: Revoke all active bearer tokens issued in the last 24 hours and page the on-call engineer.\n\n"
+        "## Section 3: MongoDB Billing Alerts\n"
+        "If an alert is triggered regarding MongoDB Atlas billing limits, do not restart the database. "
+        "This is an administrative warning indicating the M0 free tier storage is 90% full. "
+        "Resolution: Delete old log collections or upgrade to the M10 dedicated tier.\n\n"
+        "## Section 4: Redis Cache Failures\n"
+        "When the Redis cache hits 100% memory utilization, it will begin evicting older keys. "
+        "If critical session tokens are lost, users will experience random logouts. "
+        "Resolution: Flush the cache manually and scale the Redis instance to 4GB.\n\n"
+        "## Section 5: Routine Maintenance Schedule\n"
+        "All MongoDB and Redis databases undergo automated snapshot backups every Sunday at 02:00 AM UTC. "
+        "During this 15-minute window, read/write latency may increase by 200ms. No action is required."
+    )
     
     save_dir = os.path.join(os.path.dirname(__file__), "..", "..", "data", "raw_documents")
     os.makedirs(save_dir, exist_ok=True)
