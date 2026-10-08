@@ -117,9 +117,11 @@ if __name__ == "__main__":
     
     # 4. Audit Output
     print("\n--- Top 3 Fused Results ---")
+    #fetches the first 3 lists
     for i, result in enumerate(fused_results[:3]):
         doc = result["doc"]
         print(f"\n[Rank {i+1}] RRF Score: {result['score']:.4f}")
+        #set precision of float to 4 digits after decimal
         print(f"Vector Rank: {result['v_rank']} | Keyword Rank: {result['k_rank']}")
         print(f"Source: {doc['source']}")
         print(f"Text Snippet: {doc['text'][:100]}...")
