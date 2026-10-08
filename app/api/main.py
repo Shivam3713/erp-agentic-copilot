@@ -28,7 +28,7 @@ async def chat_endpoint(request: ChatRequest):
             response_stream = await client.aio.models.generate_content_stream(model='gemini-3.6-flash', contents=request.message)
             async for chunk in response_stream:
                 if chunk.text:
-                    yield f"data:{chunk.text}\n\n"
+                    yield f"data:{chunk.text}\n\n" #two times \n to show this in a format of server sent events each time a word is printed is because the word was generated 
             yield f"data:[Done]\n\n"
         except Exception as e:
             error_message = str(e)
