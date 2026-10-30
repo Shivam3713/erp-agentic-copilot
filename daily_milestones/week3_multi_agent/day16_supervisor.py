@@ -118,7 +118,9 @@ def build_rag_graph():
     
     # The chitchat node ends immediately
     workflow.add_edge("chitchat", END)
-    
+    import os
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    db_path = os.path.abspath(os.path.join(current_dir, "..", "week2_hybrid_rag", "enterprise_memory.sqlite"))
     conn = sqlite3.connect("enterprise_memory.sqlite", check_same_thread=False)
     memory = SqliteSaver(conn)
     return workflow.compile(checkpointer=memory)
