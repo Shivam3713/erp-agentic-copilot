@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.sqlite import SqliteSaver
-
+from langchain_core.runnables import RunnableConfig
 # 1. Fix the import pathing and load secrets
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -59,7 +59,7 @@ def router_node(state: AgentState) -> str:
     # Return the string that dictates the conditional edge mapping
     return decision.route
 
-def chitchat_node(state: AgentState):
+def chitchat_node(state: AgentState, config: RunnableConfig):
     """Handles general greetings without wasting database resources."""
     print("\n--- [NODE: CHITCHAT AGENT] ---")
     question = state["question"]
@@ -81,7 +81,7 @@ def chitchat_node(state: AgentState):
     User: {question}
     AI:"""
     
-    response = llm.invoke(prompt)
+    response = llm.invoke(prompt, config=config)
     
     # FIX: Append the greeting to the SQLite checkpointer so it remembers the user's name
     new_history_entries = [f"User: {question}", f"AI: {response.content}"]
@@ -94,34 +94,35 @@ def chitchat_node(state: AgentState):
 # ==========================================
 # 4. GRAPH COMPILATION
 # ==========================================
-def build_rag_graph():
+def create_uncompiled_workflow():
+    """Exposes the raw graph logic without binding a database to it."""
     workflow = StateGraph(AgentState)
     
-    # Add all three nodes
     workflow.add_node("chitchat", chitchat_node)
     workflow.add_node("retrieve", retrieve_node)   
     workflow.add_node("generate", generate_node)   
     
-    # The Conditional Edge Logic (Dynamic Routing)
     workflow.add_conditional_edges(
         START,          
         router_node,    
-        {
-            "general_chitchat": "chitchat",
-            "technical_support": "retrieve" 
-        }
+        {"general_chitchat": "chitchat", "technical_support": "retrieve"}
     )
     
-    # Standard edges for the technical pathway
     workflow.add_edge("retrieve", "generate")
     workflow.add_edge("generate", END)
-    
-    # The chitchat node ends immediately
     workflow.add_edge("chitchat", END)
+    
+    return workflow
+
+def build_rag_graph():
+    """The synchronous graph for the terminal and Day 18 API."""
+    workflow = create_uncompiled_workflow()
+    
     import os
     current_dir = os.path.dirname(os.path.abspath(__file__))
     db_path = os.path.abspath(os.path.join(current_dir, "..", "week2_hybrid_rag", "enterprise_memory.sqlite"))
-    conn = sqlite3.connect("enterprise_memory.sqlite", check_same_thread=False)
+    
+    conn = sqlite3.connect(db_path, check_same_thread=False)
     memory = SqliteSaver(conn)
     return workflow.compile(checkpointer=memory)
 

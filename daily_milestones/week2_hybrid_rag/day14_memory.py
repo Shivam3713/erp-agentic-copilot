@@ -9,6 +9,7 @@ from langchain_groq import ChatGroq
 import httpx
 from pymongo import MongoClient
 from dotenv import load_dotenv
+from langchain_core.runnables import RunnableConfig
 
 # ==========================================
 # 0. CROSS-FILE IMPORTS
@@ -61,7 +62,7 @@ def retrieve_node(state: AgentState):
     
     return {"context": final_results}
 
-def generate_node(state: AgentState):
+def generate_node(state: AgentState, config:RunnableConfig):
     print("\n--- [NODE: GENERATION] ---")
     question = state["question"]
     context_chunks = state["context"]
@@ -96,7 +97,7 @@ def generate_node(state: AgentState):
     
     Answer:"""
     
-    response = llm.invoke(prompt)
+    response = llm.invoke(prompt, config = config)
     
     # We return the answer, PLUS we append both the user's question and the AI's answer to the history list
     new_history_entries = [f"User: {question}", f"AI: {response.content}"]
